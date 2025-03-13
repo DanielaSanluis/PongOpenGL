@@ -180,6 +180,9 @@ double direccion_pelota_x = 1.5, direccion_pelota_y = 1.5; // Dirección de movi
 float posicion_paleta1_y = 50, posicion_paleta2_y = 50;
 const float alto_paleta = 20, ancho_paleta = 5;
 
+// Puntajes
+int puntaje_jugador1 = 0, puntaje_jugador2 = 0;
+
 GLfloat radio_pelota = 5.;
 
 // Dibujar la pelota en la pantalla
@@ -219,7 +222,7 @@ void manejar_teclas(unsigned char tecla, int x, int y) {
     glutPostRedisplay();
 }
 
-// 🚀 **Detectar colisión de la pelota con las paletas**
+//**Detectar colisión de la pelota con las paletas**
 void detectar_colision() {
   // Colisión con la paleta izquierda
   if (posicion_pelota_x - radio_pelota <= 15 && 
@@ -236,27 +239,42 @@ void detectar_colision() {
   }
 }
 
-// Función de actualización que se ejecuta constantemente
+// **Reiniciar la pelota tras un punto**
+void reiniciar_pelota() {
+  posicion_pelota_x = 80;
+  posicion_pelota_y = 60;
+  direccion_pelota_x = -direccion_pelota_x;  // Cambia la dirección para que el saque sea hacia el otro lado
+}
+
+// 🚀 **Actualizar la lógica del juego**
 void actualizar(int valor) {
-    // Actualizar la posición de la pelota
-    posicion_pelota_x += direccion_pelota_x;
-    posicion_pelota_y += direccion_pelota_y;
+  // Mover la pelota
+  posicion_pelota_x += direccion_pelota_x;
+  posicion_pelota_y += direccion_pelota_y;
 
-     // Verificar colisión con las paletas
-     detectar_colision();
+  // Verificar colisión con las paletas
+  detectar_colision();
 
-    // Rebote en los bordes superior e inferior
-    if (posicion_pelota_y + radio_pelota >= 120 || posicion_pelota_y - radio_pelota <= 0) {
-        direccion_pelota_y = -direccion_pelota_y; // Invertir dirección vertical
-    }
+  // Rebote en los bordes superior e inferior
+  if (posicion_pelota_y + radio_pelota >= 120 || posicion_pelota_y - radio_pelota <= 0) {
+      direccion_pelota_y = -direccion_pelota_y; // Rebote en Y
+  }
 
-    // Rebote en las paredes laterales (solo para pruebas, luego se cambiará para los puntos)
-    if (posicion_pelota_x + radio_pelota >= 160 || posicion_pelota_x - radio_pelota <= 0) {
-        direccion_pelota_x = -direccion_pelota_x; // Invertir dirección horizontal
-    }
+  // 🚀 **Si la pelota cruza los límites, sumar puntos y reiniciar**
+  if (posicion_pelota_x - radio_pelota <= 0) { // Gol en la izquierda
+      puntaje_jugador2++;
+      printf("Jugador 2 anota! Puntuación: Jugador 1 = %d | Jugador 2 = %d\n", puntaje_jugador1, puntaje_jugador2);
+      reiniciar_pelota();
+  }
 
-    glutPostRedisplay(); // Volver a dibujar la escena
-    glutTimerFunc(16, actualizar, 0); // Llamar a esta función en 16ms (aprox. 60FPS)
+  if (posicion_pelota_x + radio_pelota >= 160) { // Gol en la derecha
+      puntaje_jugador1++;
+      printf("Jugador 1 anota! Puntuación: Jugador 1 = %d | Jugador 2 = %d\n", puntaje_jugador1, puntaje_jugador2);
+      reiniciar_pelota();
+  }
+
+  glutPostRedisplay();
+  glutTimerFunc(16, actualizar, 0);
 }
 
 // Función para renderizar la escena
