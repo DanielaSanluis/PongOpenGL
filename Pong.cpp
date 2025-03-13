@@ -176,6 +176,10 @@
 double posicion_pelota_x = 80, posicion_pelota_y = 60; // Posición inicial
 double direccion_pelota_x = 1.5, direccion_pelota_y = 1.5; // Dirección de movimiento
 
+// Variables de las paletas
+float posicion_paleta1_y = 50, posicion_paleta2_y = 50;
+const float alto_paleta = 20, ancho_paleta = 5;
+
 GLfloat radio_pelota = 5.;
 
 // Dibujar la pelota en la pantalla
@@ -190,6 +194,31 @@ void dibujar_pelota() {
     glEnd();
 }
 
+// Dibujar las paletas en la pantalla
+void dibujar_paletas() {
+    glColor3f(1.0, 1.0, 1.0);
+    glRectf(10, posicion_paleta1_y, 15, posicion_paleta1_y + alto_paleta);
+    glRectf(145, posicion_paleta2_y, 150, posicion_paleta2_y + alto_paleta);
+}
+
+// Manejo del teclado (paletas)
+void manejar_teclas_especiales(int tecla, int x, int y) {
+    if (tecla == GLUT_KEY_UP && posicion_paleta2_y + alto_paleta < 120)
+        posicion_paleta2_y += 5;
+    if (tecla == GLUT_KEY_DOWN && posicion_paleta2_y > 0)
+        posicion_paleta2_y -= 5;
+    glutPostRedisplay();
+}
+
+// Manejo del teclado (teclas normales)
+void manejar_teclas(unsigned char tecla, int x, int y) {
+    if (tecla == 'w' && posicion_paleta1_y + alto_paleta < 120)
+        posicion_paleta1_y += 5;
+    if (tecla == 's' && posicion_paleta1_y > 0)
+        posicion_paleta1_y -= 5;
+    glutPostRedisplay();
+}
+
 // Función de actualización que se ejecuta constantemente
 void actualizar(int valor) {
     // Actualizar la posición de la pelota
@@ -201,6 +230,11 @@ void actualizar(int valor) {
         direccion_pelota_y = -direccion_pelota_y; // Invertir dirección vertical
     }
 
+    // Rebote en las paredes laterales (solo para pruebas, luego se cambiará para los puntos)
+    if (posicion_pelota_x + radio_pelota >= 160 || posicion_pelota_x - radio_pelota <= 0) {
+        direccion_pelota_x = -direccion_pelota_x; // Invertir dirección horizontal
+    }
+
     glutPostRedisplay(); // Volver a dibujar la escena
     glutTimerFunc(16, actualizar, 0); // Llamar a esta función en 16ms (aprox. 60FPS)
 }
@@ -208,6 +242,7 @@ void actualizar(int valor) {
 // Función para renderizar la escena
 void mostrar_escena() {
     glClear(GL_COLOR_BUFFER_BIT); // Limpiar la pantalla
+    dibujar_paletas(); // Dibujar las paletas (¡ahora se verán!)
     dibujar_pelota(); // Dibujar la pelota
     glutSwapBuffers(); // Intercambiar buffers (doble buffer)
 }
@@ -237,6 +272,10 @@ int main(int argc, char** argv) {
     glutDisplayFunc(mostrar_escena);
     glutReshapeFunc(cambiar_tamano_ventana);
     glutTimerFunc(16, actualizar, 0); // Iniciar la actualización del juego
+
+    // Asignar funciones de entrada del teclado
+    glutSpecialFunc(manejar_teclas_especiales);  // Para teclas especiales (flechas)
+    glutKeyboardFunc(manejar_teclas);  // Para teclas normales (w/s)
 
     glutMainLoop(); // Iniciar el bucle del juego
     return 0;
