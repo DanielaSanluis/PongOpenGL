@@ -175,6 +175,7 @@
 // Variables de la pelota
 double posicion_pelota_x = 80, posicion_pelota_y = 60; // Posición inicial
 double direccion_pelota_x = 1.5, direccion_pelota_y = 1.5; // Dirección de movimiento
+float velocidad_pelota = 2.0; // Variable para aumentar velocidad
 
 // Variables de las paletas
 float posicion_paleta1_y = 50, posicion_paleta2_y = 50;
@@ -182,6 +183,12 @@ const float alto_paleta = 20, ancho_paleta = 5;
 
 // Puntajes
 int puntaje_jugador1 = 0, puntaje_jugador2 = 0;
+
+// Variables para el color de la pelota
+float color_pelota_r = 1.0;
+float color_pelota_g = 1.0;
+float color_pelota_b = 1.0;
+
 
 GLfloat radio_pelota = 5.;
 
@@ -202,6 +209,23 @@ void dibujar_paletas() {
     glColor3f(1.0, 1.0, 1.0);
     glRectf(10, posicion_paleta1_y, 15, posicion_paleta1_y + alto_paleta);
     glRectf(145, posicion_paleta2_y, 150, posicion_paleta2_y + alto_paleta);
+}
+
+// Mostrar el puntaje en pantalla
+void mostrar_puntaje() {
+  char texto[20];
+  glColor3f(1.0, 1.0, 1.0);
+  sprintf(texto, "Jugador 1: %d", puntaje_jugador1);
+  glRasterPos2f(50, 110);
+  for (int i = 0; texto[i] != '\0'; i++) {
+      glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, texto[i]);
+  }
+  
+  sprintf(texto, "Jugador 2: %d", puntaje_jugador2);
+  glRasterPos2f(90, 110);
+  for (int i = 0; texto[i] != '\0'; i++) {
+      glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, texto[i]);
+  }
 }
 
 // Manejo del teclado (paletas)
@@ -229,6 +253,8 @@ void detectar_colision() {
       posicion_pelota_y >= posicion_paleta1_y && 
       posicion_pelota_y <= posicion_paleta1_y + alto_paleta) {
       direccion_pelota_x = -direccion_pelota_x; // Rebote
+      velocidad_pelota *= 1.1; // Aumentar velocidad con el rebote
+      if (velocidad_pelota > 6.0) velocidad_pelota = 6.0;
   }
 
   // Colisión con la paleta derecha
@@ -236,53 +262,61 @@ void detectar_colision() {
       posicion_pelota_y >= posicion_paleta2_y && 
       posicion_pelota_y <= posicion_paleta2_y + alto_paleta) {
       direccion_pelota_x = -direccion_pelota_x; // Rebote
+      velocidad_pelota *= 1.1;
+      if (velocidad_pelota > 6.0) velocidad_pelota = 6.0;
   }
+}
+
+// Cambiar color de la pelota cuando alguien anota
+void cambiar_color_pelota() {
+  color_pelota_r = (rand() % 256) / 255.0;
+  color_pelota_g = (rand() % 256) / 255.0;
+  color_pelota_b = (rand() % 256) / 255.0;
 }
 
 // **Reiniciar la pelota tras un punto**
 void reiniciar_pelota() {
   posicion_pelota_x = 80;
   posicion_pelota_y = 60;
-  direccion_pelota_x = -direccion_pelota_x;  // Cambia la dirección para que el saque sea hacia el otro lado
+  direccion_pelota_x = (rand() % 2 == 0) ? velocidad_pelota : -velocidad_pelota;
+  direccion_pelota_y = (rand() % 2 == 0) ? velocidad_pelota : -velocidad_pelota;
+  velocidad_pelota = 2.0; // Reiniciar velocidad
+  cambiar_color_pelota(); // Cambiar color al reiniciar
 }
 
-// 🚀 **Actualizar la lógica del juego**
+// **Actualizar la lógica del juego**
+// Actualizar la lógica del juego
 void actualizar(int valor) {
-  // Mover la pelota
   posicion_pelota_x += direccion_pelota_x;
   posicion_pelota_y += direccion_pelota_y;
 
-  // Verificar colisión con las paletas
   detectar_colision();
 
-  // Rebote en los bordes superior e inferior
   if (posicion_pelota_y + radio_pelota >= 120 || posicion_pelota_y - radio_pelota <= 0) {
-      direccion_pelota_y = -direccion_pelota_y; // Rebote en Y
+      direccion_pelota_y = -direccion_pelota_y;
   }
 
-  // 🚀 **Si la pelota cruza los límites, sumar puntos y reiniciar**
-  if (posicion_pelota_x - radio_pelota <= 0) { // Gol en la izquierda
+  if (posicion_pelota_x - radio_pelota <= 0) {
       puntaje_jugador2++;
-      printf("Jugador 2 anota! Puntuación: Jugador 1 = %d | Jugador 2 = %d\n", puntaje_jugador1, puntaje_jugador2);
       reiniciar_pelota();
   }
 
-  if (posicion_pelota_x + radio_pelota >= 160) { // Gol en la derecha
+  if (posicion_pelota_x + radio_pelota >= 160) {
       puntaje_jugador1++;
-      printf("Jugador 1 anota! Puntuación: Jugador 1 = %d | Jugador 2 = %d\n", puntaje_jugador1, puntaje_jugador2);
       reiniciar_pelota();
   }
 
   glutPostRedisplay();
   glutTimerFunc(16, actualizar, 0);
 }
-
+ 
 // Función para renderizar la escena
 void mostrar_escena() {
-    glClear(GL_COLOR_BUFFER_BIT); // Limpiar la pantalla
-    dibujar_paletas(); // Dibujar las paletas (¡ahora se verán!)
-    dibujar_pelota(); // Dibujar la pelota
-    glutSwapBuffers(); // Intercambiar buffers (doble buffer)
+  glClear(GL_COLOR_BUFFER_BIT);
+  dibujar_paletas();
+  dibujar_pelota();
+  mostrar_puntaje();
+  glutSwapBuffers();
 }
 
 // Inicialización de OpenGL
