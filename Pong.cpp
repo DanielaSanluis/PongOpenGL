@@ -219,11 +219,31 @@ void manejar_teclas(unsigned char tecla, int x, int y) {
     glutPostRedisplay();
 }
 
+// 🚀 **Detectar colisión de la pelota con las paletas**
+void detectar_colision() {
+  // Colisión con la paleta izquierda
+  if (posicion_pelota_x - radio_pelota <= 15 && 
+      posicion_pelota_y >= posicion_paleta1_y && 
+      posicion_pelota_y <= posicion_paleta1_y + alto_paleta) {
+      direccion_pelota_x = -direccion_pelota_x; // Rebote
+  }
+
+  // Colisión con la paleta derecha
+  if (posicion_pelota_x + radio_pelota >= 145 && 
+      posicion_pelota_y >= posicion_paleta2_y && 
+      posicion_pelota_y <= posicion_paleta2_y + alto_paleta) {
+      direccion_pelota_x = -direccion_pelota_x; // Rebote
+  }
+}
+
 // Función de actualización que se ejecuta constantemente
 void actualizar(int valor) {
     // Actualizar la posición de la pelota
     posicion_pelota_x += direccion_pelota_x;
     posicion_pelota_y += direccion_pelota_y;
+
+     // Verificar colisión con las paletas
+     detectar_colision();
 
     // Rebote en los bordes superior e inferior
     if (posicion_pelota_y + radio_pelota >= 120 || posicion_pelota_y - radio_pelota <= 0) {
